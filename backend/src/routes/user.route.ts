@@ -1,50 +1,17 @@
 import { Hono } from "hono";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
-import { sign,verify } from "hono/jwt";
-import userRouter from "./routes/user.route";
+import { sign} from "hono/jwt";
 
-const app = new Hono<{
-  Bindings: {
-    DATABASE_URL: string;
-    JWT_SECRET: string;
-  };
-}>();
-
-app.use('/api/v1/blog/*', async (c, next ) => {
-    const header = c.req.header("authorization") || "";
-
-    if (!header || !header.startsWith("Bearer ")) {
-    c.status(401);
-    return c.json({ error: "Unauthorized: Missing or invalid header" });
+const userRouter = new Hono<{
+  Bindings : {
+    DATABASE_URL :string,
+    JWT_SECRET : string,
   }
-  
-    // Bearer Token => ['bearer', 'token']
-    const token = header.split(' ')[1];
-  try {
-    // verify the token 
-    const payload = await verify(token, c.env.JWT_SECRET);
+}>()
 
-    if (payload && payload.id) {
-      // @ts-ignore 
-      c.set("userId", payload.id);
-      await next();
-    } else {
-      c.status(403);
-      return c.json({ error: "Unauthorized: Invalid payload" });
-    }
-  } catch (e) {
-    c.status(403);
-    return c.json({ error: "Unauthorized: Token verification failed" });
-  }
-})
 
-//Routes
-
-app.route('/api/v1/user', userRouter);
-// app.route('/api/v1/blog', blogRouter);
-
-app.post("/api/v1/user/signup", async (c) => {
+userRouter.post("/signup", async (c) => {
   const prisma = new PrismaClient({
     accelerateUrl: c.env?.DATABASE_URL,
   }).$extends(withAccelerate());
@@ -78,7 +45,7 @@ app.post("/api/v1/user/signup", async (c) => {
   }
 });
 
-app.post('/api/v1/user/signin', async (c) => {
+userRouter.post('/signin', async (c) => {
   const prisma = new PrismaClient({
     accelerateUrl: c.env?.DATABASE_URL,
   }).$extends(withAccelerate());
@@ -116,4 +83,4 @@ app.post('/api/v1/user/signin', async (c) => {
   }
 } )
 
-export default app;
+export default userRouter;
