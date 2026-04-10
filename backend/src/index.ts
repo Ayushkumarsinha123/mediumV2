@@ -22,7 +22,8 @@ app.use('/api/v1/blog/*', async (c, next ) => {
     // Bearer Token => ['bearer', 'token']
     const token = header.split(' ')[1];
   try {
-    // verify the token 
+    // verify the token
+    //@ts-ignore 
     const payload = await verify(token, c.env.JWT_SECRET);
 
     if (payload && payload.id) {
