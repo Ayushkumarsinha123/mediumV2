@@ -71,6 +71,7 @@ userRouter.post('/signin', async (c) => {
     return c.json({
       jwt: token,
       message: "logged in",
+      id : user.id
     });
   } catch (e) {
     console.error("Signin Error:", e);

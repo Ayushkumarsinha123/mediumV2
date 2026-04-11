@@ -18,10 +18,10 @@ const blogRouter = new Hono<{
 blogRouter.use('/*', async (c, next) => {
     const authHeader = c.req.header("authorization") || "";
     //@ts-ignore
-    const user = await verify(authHeader, c.env.JWT_SECRET);
+    const user = await verify(authHeader, c.env.JWT_SECRET, "HS256");
     if(user) {
       c.set("userId", (user.id as string));
-      next();
+     await next();
     } else {
       c.status(403)
       return c.json({
@@ -67,26 +67,6 @@ blogRouter.put('/', async (c) => {
   return c.json({ message: "post updated!!", id: blog.id }, 200);
 })
 
-blogRouter.get('/', async (c) => {
-  const body = await c.req.json();
-  const prisma = new PrismaClient({
-    accelerateUrl: c.env?.DATABASE_URL,
-  }).$extends(withAccelerate());
-
-  try {
-    const blog = await prisma.post.findFirst({
-    where : {
-        id : body.id
-    }
-  });
-
-  return c.json({ message: "post fetched!!", blog }, 200)
-  } catch(error) {
-    c.status(411);
-    return c.json({message : 'error found', error})
-  }
-})
-
 // we have to implement pagination later 
 blogRouter.get('/bulk', async (c) => {
   const prisma = new PrismaClient({
@@ -99,3 +79,26 @@ blogRouter.get('/bulk', async (c) => {
     blogs
   })
 })
+
+export default blogRouter;
+
+blogRouter.get('/:id', async (c) => {
+  const id =  c.req.param("id");
+  const prisma = new PrismaClient({
+    accelerateUrl: c.env?.DATABASE_URL,
+  }).$extends(withAccelerate());
+
+  try {
+    const blog = await prisma.post.findFirst({
+    where : {
+        id : id
+    }
+  });
+
+  return c.json({ message: "post fetched!!", blog }, 200)
+  } catch(error) {
+    c.status(411);
+    return c.json({message : 'error found', error})
+  }
+})
+
