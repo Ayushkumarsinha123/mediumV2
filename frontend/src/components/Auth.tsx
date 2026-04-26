@@ -8,7 +8,7 @@ import { BACKEND_URL } from "../config";
 export const Auth = ({ type } : {type : "signup" | "signin"}) => {
   const navigate = useNavigate();
   const [postInputs , setPostInputs ] = useState<SignUpInput>({
-    name : "",
+    username : "",
     email: "",
     password: ""
   });
@@ -20,6 +20,7 @@ export const Auth = ({ type } : {type : "signup" | "signin"}) => {
         localStorage.setItem("token", jwt);
         navigate("/blogs");
     } catch(error) {
+        alert("error while signing up")
         // if user not get the response 
     }
   }
@@ -41,10 +42,10 @@ export const Auth = ({ type } : {type : "signup" | "signin"}) => {
                 </div>
                 
                 <div className="space-y-4">
-                    {type === "signup" ? <LabelledInput label="Name" placeholder="name" onChange={(e) => {
+                    {type === "signup" ? <LabelledInput label="username" placeholder="name" onChange={(e) => {
                         setPostInputs({
                             ...postInputs,
-                            name: e.target.value
+                            username: e.target.value
                         })
                     }} /> : null}
                     <LabelledInput label="Email" placeholder="email" onChange={(e) => {
@@ -79,3 +80,4 @@ function LabelledInput({label, placeholder, onChange, type} : LabelledInputType)
         <input onChange={onChange} type={type || "text"} id="first_name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder={placeholder} required />
   </div>
 }
+
