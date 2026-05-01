@@ -40,8 +40,11 @@ userRouter.post("/signup", async (c) => {
       jwt: token,
       message: "user created",
     });
-  } catch (e) {
+  } catch (e:any) {
     console.error("Signup Error:", e);
+    if (e.code === 'P2002') {
+    return c.json({ error: "Username already taken." }, 409);
+  }
     
     c.status(403);
     return c.json({ 
@@ -84,7 +87,7 @@ userRouter.post('/signin', async (c) => {
       message: "logged in",
       id : user.id
     });
-  } catch (e) {
+  } catch (e:any) {
     console.error("Signin Error:", e);
     
     c.status(403);
@@ -94,5 +97,29 @@ userRouter.post('/signin', async (c) => {
     });
   }
 } )
+
+userRouter.get("/all", async (c) => {
+  const prisma = new PrismaClient({
+    accelerateUrl: c.env?.DATABASE_URL,
+  }).$extends(withAccelerate());
+
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        // NEVER expose password
+      },
+    });
+
+    return c.json(users);
+  } catch (e: any) {
+    return c.json({
+      error: "Error fetching users",
+      details: e.message,
+    }, 500);
+  }
+});
 
 export default userRouter;

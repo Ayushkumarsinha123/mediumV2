@@ -84,11 +84,27 @@ blogRouter.get('/bulk', async (c) => {
     accelerateUrl: c.env?.DATABASE_URL,
   }).$extends(withAccelerate());
 
-  const blogs = await prisma.post.findMany()
+  try {const blogs = await prisma.post.findMany({
+    select : {
+      content: true,
+      title : true,
+      id: true,
+      author : {
+        select : {
+          name : true
+        }
+      }
+    }
+  })
 
   return c.json({
     blogs
-  })
+  })} catch(e:any) {
+    return e.json({
+      error:" failed to fetch blogs",
+      detail : e.message
+    }, 500)
+  }
 })
 
 export default blogRouter;
@@ -103,6 +119,15 @@ blogRouter.get('/:id', async (c) => {
     const blog = await prisma.post.findFirst({
     where : {
         id : id
+    },
+    select: {
+      title : true,
+      content:true,
+      author : {
+        select : {
+          name : true
+        }
+      }
     }
   });
 
